@@ -1,0 +1,39 @@
+name: predict_simple_formula
+channels:
+  - defaults
+dependencies:
+  - _libgcc_mutex=0.1=main
+  - _openmp_mutex=4.5=1_gnu
+  - backcall=0.2.0=pyhd3eb1b0_0
+  - ca-certificates=2021.7.5=h06a4308_1
+  - certifi=2021.5.30=py38h06a4308_0
+  - decorator=5.0.9=pyhd3eb1b0_0
+  - ipython=7.26.0=py38hb070fc8_0
+  - ipython_genutils=0.2.0=pyhd3eb1b0_1
+  - jedi=0.18.0=py38h06a4308_1
+  - ld_impl_linux-64=2.35.1=h7274673_9
+  - libffi=3.3=he6710b0_2
+  - libgcc-ng=9.3.0=h5101ec6_17
+  - libgomp=9.3.0=h5101ec6_17
+  - libstdcxx-ng=9.3.0=hd4cf53a_17
+  - matplotlib-inline=0.1.2=pyhd3eb1b0_2
+  - ncurses=6.2=he6710b0_1
+  - openssl=1.1.1k=h27cfd23_0
+  - parso=0.8.2=pyhd3eb1b0_0
+  - pexpect=4.8.0=pyhd3eb1b0_3
+  - pickleshare=0.7.5=pyhd3eb1b0_1003
+  - pip=21.0.1=py38h06a4308_0
+  - prompt-toolkit=3.0.17=pyh06a4308_0
+  - ptyprocess=0.7.0=pyhd3eb1b0_2
+  - pygments=2.9.0=pyhd3eb1b0_0
+  - python=3.8.11=h12debd9_0_cpython
+  - readline=8.1=h27cfd23_0
+  - setuptools=52.0.0=py38h06a4308_0
+  - sqlite=3.36.0=hc218d9a_0
+  - tk=8.6.10=hbc83047_0
+  - traitlets=5.0.5=pyhd3eb1b0_0
+  - wcwidth=0.2.5=py_0
+  - wheel=0.37.0=pyhd3eb1b0_0
+  - xz=5.2.5=h7b6447c_0
+  - zlib=1.2.11=h7b6447c_3
+prefix: /home/takahiro/anaconda3/envs/predict_simple_formula

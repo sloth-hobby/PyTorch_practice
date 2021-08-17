@@ -17,8 +17,11 @@ class PredictSimpleFormulaNet(nn.Module):
                             dropout = dropout)
         self.output_layer = nn.Linear(hidden_size, output_size)
 
-    def forward(self, inputs, hidden=None):
-        output, (hidden, cell) = self.rnn(inputs, hidden)
+        nn.init.xavier_normal_(self.rnn.weight_ih_l0)
+        nn.init.orthogonal_(self.rnn.weight_hh_l0)
+
+    def forward(self, inputs):
+        output, (hidden, cell) = self.rnn(inputs)
         output = self.output_layer(output[:, -1, :])
 
         return output
@@ -47,17 +50,20 @@ class Train():
             dataset_inputs.append([np.exp(t_start + t + i) for i in range(input_length)])
             dataset_labels.append([np.exp(t_start + t + input_length)])
 
-        return np.array(dataset_inputs), np.array(dataset_labels)
+        return np.array(dataset_inputs).reshape(-1, input_length, 1), np.array(dataset_labels).reshape(-1, 1)
 
     def train_step(self, inputs, labels):
-        print("inputs = {}, labels = {}".format(inputs.shape, labels.shape))
+        # print("inputs = {}, labels = {}".format(inputs.shape, labels.shape))
         inputs = torch.Tensor(inputs).to(self.device)
         labels = torch.Tensor(labels).to(self.device)
+        # print("tensor_ver: inputs = {}, labels = {}".format(inputs.shape, labels.shape))
         self.net.train()
         preds = self.net(inputs)
         loss = self.criterion(preds, labels)
         self.optimizer.zero_grad()
         loss.backward()
+        # 勾配が大きくなりすぎると計算が不安定になるので、clipで最大でも勾配2.0に留める
+        nn.utils.clip_grad_value_(self.net.parameters(), clip_value=2.0)
         self.optimizer.step()
 
         return loss, preds
@@ -84,6 +90,7 @@ class Train():
             test_loss = 0.
             train_inputs_shuffle, train_labels_shuffle = shuffle(train_inputs, train_labels)
             for batch in range(n_batches_train):
+                print("batch = {}, n_batches_train = {}".format(batch, n_batches_train))
                 start = batch * batch_size
                 end = start + batch_size
                 loss, _ = self.train_step(train_inputs_shuffle[start:end], train_labels_shuffle[start:end])
@@ -111,7 +118,7 @@ if __name__ == '__main__':
     t_start = -100.0
     # train pram
     epochs = 1000
-    batch_size = 100
+    batch_size = 11
     '''
     学習用のデータセットを用意
     '''

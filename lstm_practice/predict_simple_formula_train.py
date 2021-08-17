@@ -68,10 +68,10 @@ class Train():
 
         return loss, preds
 
-    def test_step(x, t):
+    def test_step(self, inputs, labels):
         inputs = torch.Tensor(inputs).to(self.device)
         labels = torch.Tensor(labels).to(self.device)
-        self.net.val()
+        self.net.eval()
         preds = self.net(inputs)
         loss = self.criterion(preds, labels)
 
@@ -80,8 +80,8 @@ class Train():
     def train(self, train_inputs, train_labels, test_inputs, test_labels, epochs, batch_size):
         torch.backends.cudnn.benchmark = True   # ネットワークがある程度固定であれば、高速化させる
 
-        n_batches_train = train_inputs.shape[0]
-        n_batches_test = test_inputs.shape[0]
+        n_batches_train = int(train_inputs.shape[0] / batch_size)
+        n_batches_test = int(test_inputs.shape[0] / batch_size)
         for epoch in range(epochs):
             print('-------------')
             print('Epoch {}/{}'.format(epoch+1, epochs))
@@ -89,10 +89,12 @@ class Train():
             train_loss = 0.
             test_loss = 0.
             train_inputs_shuffle, train_labels_shuffle = shuffle(train_inputs, train_labels)
+            # print("train_inputs_shuffle = {}, train_labels_shuffle = {}".format(train_inputs_shuffle.shape, train_labels_shuffle.shape))
             for batch in range(n_batches_train):
-                print("batch = {}, n_batches_train = {}".format(batch, n_batches_train))
+                # print("batch = {}, n_batches_train = {}".format(batch, n_batches_train))
                 start = batch * batch_size
                 end = start + batch_size
+                # print("start = {}, end = {}".format(start, end))
                 loss, _ = self.train_step(train_inputs_shuffle[start:end], train_labels_shuffle[start:end])
                 train_loss += loss.item()
 
@@ -118,7 +120,7 @@ if __name__ == '__main__':
     t_start = -100.0
     # train pram
     epochs = 1000
-    batch_size = 11
+    batch_size = 10
     '''
     学習用のデータセットを用意
     '''

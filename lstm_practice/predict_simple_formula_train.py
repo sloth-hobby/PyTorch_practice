@@ -35,18 +35,15 @@ class Train():
         self.net = PredictSimpleFormulaNet(input_size, output_size, hidden_size, num_layers, batch_first, dropout).to(self.device)
         self.criterion = nn.MSELoss(reduction='mean')
         self.optimizer = optim.Adam(self.net.parameters(),
-                                        lr=0.01,
+                                        lr=0.001,
                                         betas=(0.9, 0.999), amsgrad=True)
 
     def make_dataset(self, dataset_num, sequence_length, t_start):
         dataset_inputs = []
         dataset_labels = []
         for t in range(dataset_num):
-            dataset_inputs.append([np.exp(t_start + t + i) for i in range(sequence_length)])
-            dataset_labels.append([np.exp(t_start + t + sequence_length)])
-            print("")
-            for i in range(sequence_length):
-                print("i = {}, {}, lable = {}, {}".format(t_start + t + i, np.exp(t_start + t + i), t_start + t + sequence_length, np.exp(t_start + t + sequence_length)))
+            dataset_inputs.append([np.sin(t_start + t + i) for i in range(sequence_length)])
+            dataset_labels.append([np.sin(t_start + t + sequence_length)])
 
         # return np.array(dataset_inputs).reshape(-1, sequence_length, 1), np.array(dataset_labels).reshape(-1, 1)
         return np.array(dataset_inputs),  np.array(dataset_labels)
@@ -107,7 +104,7 @@ class Train():
 
             train_loss /= float(n_batches_train)
             test_loss /= float(n_batches_test)
-            print('loss: {:.3}, test_loss: {:.3f}'.format(train_loss, test_loss))
+            print('loss: {:.3}, test_loss: {:.3}'.format(train_loss, test_loss))
 
 if __name__ == '__main__':
     np.random.seed(123)
@@ -115,7 +112,7 @@ if __name__ == '__main__':
     '''
     定数
     '''
-    dataset_num = 3
+    dataset_num = 110
     sequence_length = 3
     t_start = -100.0
     # model pram
@@ -124,10 +121,10 @@ if __name__ == '__main__':
     hidden_size = 64
     num_layers = 1
     batch_first = True
-    dropout = 0
+    dropout = 0.0
     # train pram
-    epochs = 1
-    batch_size = 10
+    epochs = 10
+    batch_size = 3
     '''
     学習用のデータセットを用意
     '''
@@ -135,7 +132,7 @@ if __name__ == '__main__':
     dataset_inputs, dataset_labels = train.make_dataset(dataset_num, sequence_length, t_start)
     print("dataset_inputs = {}, dataset_labels = {}".format(dataset_inputs.shape, dataset_labels.shape))
     train_inputs, test_inputs, train_labels, test_labels = train_test_split(dataset_inputs, dataset_labels, test_size=0.2, shuffle=False)
-    # print("train_inputs = {}, train_labels = {}, test_inputs = {}, test_labels = {}".format(train_inputs.shape, train_labels.shape, test_inputs.shape, test_labels.shape))
-    print("train_inputs = {}, train_labels = {}, test_inputs = {}, test_labels = {}".format(train_inputs, train_labels, test_inputs, test_labels))
+    print("train_inputs = {}, train_labels = {}, test_inputs = {}, test_labels = {}".format(train_inputs.shape, train_labels.shape, test_inputs.shape, test_labels.shape))
+    # print("train_inputs = {}, train_labels = {}, test_inputs = {}, test_labels = {}".format(train_inputs, train_labels, test_inputs, test_labels))
     train.train(train_inputs, train_labels, test_inputs, test_labels, epochs, batch_size, sequence_length, input_size)
 

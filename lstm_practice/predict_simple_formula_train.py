@@ -44,6 +44,9 @@ class Train():
         for t in range(dataset_num):
             dataset_inputs.append([np.exp(t_start + t + i) for i in range(sequence_length)])
             dataset_labels.append([np.exp(t_start + t + sequence_length)])
+            print("")
+            for i in range(sequence_length):
+                print("i = {}, {}, lable = {}, {}".format(t_start + t + i, np.exp(t_start + t + i), t_start + t + sequence_length, np.exp(t_start + t + sequence_length)))
 
         # return np.array(dataset_inputs).reshape(-1, sequence_length, 1), np.array(dataset_labels).reshape(-1, 1)
         return np.array(dataset_inputs),  np.array(dataset_labels)
@@ -112,7 +115,7 @@ if __name__ == '__main__':
     '''
     定数
     '''
-    dataset_num = 100
+    dataset_num = 3
     sequence_length = 3
     t_start = -100.0
     # model pram

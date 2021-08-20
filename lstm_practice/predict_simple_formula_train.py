@@ -6,6 +6,7 @@ import torch.optim as optim
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 import numpy as np
+import matplotlib.pyplot as plt
 
 class PredictSimpleFormulaNet(nn.Module):
     def __init__(self, input_size, output_size, hidden_size, num_layers, batch_first, dropout):
@@ -85,14 +86,9 @@ class Train():
             train_loss = 0.
             test_loss = 0.
             train_inputs_shuffle, train_labels_shuffle = shuffle(train_inputs, train_labels)
-            # print("train_inputs_shuffle = {}, train_labels_shuffle = {}".format(train_inputs_shuffle.shape, train_labels_shuffle.shape))
             for batch in range(n_batches_train):
-                # print("batch = {}, n_batches_train = {}".format(batch, n_batches_train))
                 start = batch * batch_size
                 end = start + batch_size
-                # print("start = {}, end = {}".format(start, end))
-                # print("start = {}, end = {}".format(np.array(train_inputs_shuffle[start:end]).reshape(-1, sequence_length, input_size).shape, np.array(train_labels_shuffle[start:end]).reshape(-1, input_size).shape))
-                # print("start = {}, end = {}".format(np.array(train_inputs_shuffle[start:end]).reshape(-1, sequence_length, input_size), np.array(train_labels_shuffle[start:end]).reshape(-1, input_size)))
                 loss, _ = self.train_step(np.array(train_inputs_shuffle[start:end]).reshape(-1, sequence_length, input_size), np.array(train_labels_shuffle[start:end]).reshape(-1, input_size))
                 train_loss += loss.item()
 
@@ -105,6 +101,27 @@ class Train():
             train_loss /= float(n_batches_train)
             test_loss /= float(n_batches_test)
             print('loss: {:.3}, test_loss: {:.3}'.format(train_loss, test_loss))
+
+        print('-------------')
+        print("start predict test!!")
+        self.net.eval()
+        pred_list = []
+        for i in range(len(test_inputs)):
+            input = np.array(test_inputs[i]).reshape(-1, sequence_length, input_size)
+            input = torch.Tensor(input).to(self.device)
+            preds = self.net(input).data.cpu().numpy()
+            pred_list.append(preds[0].tolist())
+        print("test_inputs = {}, pred_list = {}, test_labels = {}".format(test_inputs, pred_list, test_labels))
+        #以下グラフ描画
+        plt.plot(test_inputs, pred_list)
+        plt.plot(test_inputs, test_labels, c='#00ff00')
+        # plt.xlim(0, epoch+1)
+        # plt.ylim(0, 2.5)
+        plt.xlabel('t')
+        plt.ylabel('y')
+        plt.legend(['data', 'pred'])
+        plt.title('compare data and pred')
+        plt.show()
 
 if __name__ == '__main__':
     np.random.seed(123)

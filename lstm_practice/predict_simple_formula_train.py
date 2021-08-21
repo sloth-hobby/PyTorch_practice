@@ -42,12 +42,14 @@ class Train():
     def make_dataset(self, dataset_num, sequence_length, t_start):
         dataset_inputs = []
         dataset_labels = []
+        dataset_times = []
         for t in range(dataset_num):
             dataset_inputs.append([np.sin(t_start + t + i) for i in range(sequence_length)])
             dataset_labels.append([np.sin(t_start + t + sequence_length)])
+            dataset_times.append(t_start + t + sequence_length)
 
         # return np.array(dataset_inputs).reshape(-1, sequence_length, 1), np.array(dataset_labels).reshape(-1, 1)
-        return np.array(dataset_inputs),  np.array(dataset_labels)
+        return np.array(dataset_inputs),  np.array(dataset_labels), dataset_times
 
     def train_step(self, inputs, labels):
         # print("inputs = {}, labels = {}".format(inputs.shape, labels.shape))
@@ -102,6 +104,7 @@ class Train():
             test_loss /= float(n_batches_test)
             print('loss: {:.3}, test_loss: {:.3}'.format(train_loss, test_loss))
 
+    def pred_result_plt(self, test_inputs, test_labels, test_times, sequence_length, input_size):
         print('-------------')
         print("start predict test!!")
         self.net.eval()
@@ -113,8 +116,8 @@ class Train():
             pred_list.append(preds[0].tolist())
         print("test_inputs = {}, pred_list = {}, test_labels = {}".format(test_inputs, pred_list, test_labels))
         #以下グラフ描画
-        plt.plot(test_inputs, pred_list)
-        plt.plot(test_inputs, test_labels, c='#00ff00')
+        plt.plot(test_times, pred_list)
+        plt.plot(test_times, test_labels, c='#00ff00')
         # plt.xlim(0, epoch+1)
         # plt.ylim(0, 2.5)
         plt.xlabel('t')
@@ -142,14 +145,17 @@ if __name__ == '__main__':
     # train pram
     epochs = 10
     batch_size = 3
+    test_size = 0.2
     '''
     学習用のデータセットを用意
     '''
     train = Train(input_size, output_size, hidden_size, num_layers, batch_first, dropout)
-    dataset_inputs, dataset_labels = train.make_dataset(dataset_num, sequence_length, t_start)
+    dataset_inputs, dataset_labels, dataset_times = train.make_dataset(dataset_num, sequence_length, t_start)
     print("dataset_inputs = {}, dataset_labels = {}".format(dataset_inputs.shape, dataset_labels.shape))
-    train_inputs, test_inputs, train_labels, test_labels = train_test_split(dataset_inputs, dataset_labels, test_size=0.2, shuffle=False)
+    train_inputs, test_inputs, train_labels, test_labels = train_test_split(dataset_inputs, dataset_labels, test_size=test_size, shuffle=False)
     print("train_inputs = {}, train_labels = {}, test_inputs = {}, test_labels = {}".format(train_inputs.shape, train_labels.shape, test_inputs.shape, test_labels.shape))
     # print("train_inputs = {}, train_labels = {}, test_inputs = {}, test_labels = {}".format(train_inputs, train_labels, test_inputs, test_labels))
     train.train(train_inputs, train_labels, test_inputs, test_labels, epochs, batch_size, sequence_length, input_size)
+    train_times, test_times = train_test_split(dataset_times, test_size=test_size, shuffle=False)
+    train.pred_result_plt(test_inputs, test_labels, test_times, sequence_length, input_size)
 

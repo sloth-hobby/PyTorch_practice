@@ -39,13 +39,13 @@ class Train():
                                         lr=0.001,
                                         betas=(0.9, 0.999), amsgrad=True)
 
-    def make_dataset(self, dataset_num, sequence_length, t_start):
+    def make_dataset(self, dataset_num, sequence_length, t_start, sin_t):
         dataset_inputs = []
         dataset_labels = []
         dataset_times = []
         for t in range(dataset_num):
-            dataset_inputs.append([np.sin(t_start + t + i) for i in range(sequence_length)])
-            dataset_labels.append([np.sin(t_start + t + sequence_length)])
+            dataset_inputs.append([np.sin(2.0 * np.pi / sin_t * (t_start + t + i)) for i in range(sequence_length)])
+            dataset_labels.append([np.sin(2.0 * np.pi / sin_t * (t_start + t + sequence_length))])
             dataset_times.append(t_start + t + sequence_length)
 
         # return np.array(dataset_inputs).reshape(-1, sequence_length, 1), np.array(dataset_labels).reshape(-1, 1)
@@ -118,12 +118,10 @@ class Train():
         #以下グラフ描画
         plt.plot(test_times, pred_list)
         plt.plot(test_times, test_labels, c='#00ff00')
-        # plt.xlim(0, epoch+1)
-        # plt.ylim(0, 2.5)
         plt.xlabel('t')
         plt.ylabel('y')
-        plt.legend(['data', 'pred'])
-        plt.title('compare data and pred')
+        plt.legend(['label', 'pred'])
+        plt.title('compare label and pred')
         plt.show()
 
 if __name__ == '__main__':
@@ -135,6 +133,7 @@ if __name__ == '__main__':
     dataset_num = 110
     sequence_length = 3
     t_start = -100.0
+    sin_t = 25.0
     # model pram
     input_size = 1
     output_size = 1
@@ -143,14 +142,14 @@ if __name__ == '__main__':
     batch_first = True
     dropout = 0.0
     # train pram
-    epochs = 10
+    epochs = 40
     batch_size = 3
     test_size = 0.2
     '''
     学習用のデータセットを用意
     '''
     train = Train(input_size, output_size, hidden_size, num_layers, batch_first, dropout)
-    dataset_inputs, dataset_labels, dataset_times = train.make_dataset(dataset_num, sequence_length, t_start)
+    dataset_inputs, dataset_labels, dataset_times = train.make_dataset(dataset_num, sequence_length, t_start, sin_t)
     print("dataset_inputs = {}, dataset_labels = {}".format(dataset_inputs.shape, dataset_labels.shape))
     train_inputs, test_inputs, train_labels, test_labels = train_test_split(dataset_inputs, dataset_labels, test_size=test_size, shuffle=False)
     print("train_inputs = {}, train_labels = {}, test_inputs = {}, test_labels = {}".format(train_inputs.shape, train_labels.shape, test_inputs.shape, test_labels.shape))

@@ -22,8 +22,6 @@ class PredictSimpleFormulaNet(nn.Module):
         nn.init.orthogonal_(self.rnn.weight_hh_l0)
 
     def forward(self, inputs):
-        # output, (hidden, cell) = self.rnn(inputs)
-        # output = self.output_layer(output[:, -1, :])
         output, _= self.rnn(inputs)
         output = self.output_layer(output[:, -1])
 
@@ -49,7 +47,7 @@ class Train():
             dataset_times.append(t_start + t + sequence_length)
 
         # return np.array(dataset_inputs).reshape(-1, sequence_length, 1), np.array(dataset_labels).reshape(-1, 1)
-        return np.array(dataset_inputs),  np.array(dataset_labels), dataset_times
+        return np.array(dataset_inputs),  np.array(dataset_labels), np.array(dataset_times)
 
     def train_step(self, inputs, labels):
         # print("inputs = {}, labels = {}".format(inputs.shape, labels.shape))
@@ -61,8 +59,8 @@ class Train():
         loss = self.criterion(preds, labels)
         self.optimizer.zero_grad()
         loss.backward()
-        # # 勾配が大きくなりすぎると計算が不安定になるので、clipで最大でも勾配2.0に留める
-        # nn.utils.clip_grad_value_(self.net.parameters(), clip_value=2.0)
+        # 勾配が大きくなりすぎると計算が不安定になるので、clipで最大でも勾配2.0に留める
+        nn.utils.clip_grad_value_(self.net.parameters(), clip_value=2.0)
         self.optimizer.step()
 
         return loss, preds
@@ -108,15 +106,19 @@ class Train():
         print('-------------')
         print("start predict test!!")
         self.net.eval()
-        pred_list = []
+        preds = []
         for i in range(len(test_inputs)):
             input = np.array(test_inputs[i]).reshape(-1, sequence_length, input_size)
             input = torch.Tensor(input).to(self.device)
-            preds = self.net(input).data.cpu().numpy()
-            pred_list.append(preds[0].tolist())
-        print("test_inputs = {}, pred_list = {}, test_labels = {}".format(test_inputs, pred_list, test_labels))
+            pred = self.net(input).data.cpu().numpy()
+            preds.append(pred[0].tolist())
+        # print("test_inputs = {}, preds = {}, test_labels = {}".format(test_inputs, preds, test_labels))
+        preds = np.array(preds)
+        test_labels = np.array(test_labels)
+        pred_epss = test_labels - preds
+        print("pred_epss = {}".format(pred_epss))
         #以下グラフ描画
-        plt.plot(test_times, pred_list)
+        plt.plot(test_times, preds)
         plt.plot(test_times, test_labels, c='#00ff00')
         plt.xlabel('t')
         plt.ylabel('y')

@@ -37,13 +37,17 @@ class Train():
                                         lr=0.001,
                                         betas=(0.9, 0.999), amsgrad=True)
 
+    def simple_formula(self, input, sin_t=25.0, mode="sin"):
+        if mode == "sin":
+            return np.sin(2.0 * np.pi / sin_t * (input))
+
     def make_dataset(self, dataset_num, sequence_length, t_start, sin_t):
         dataset_inputs = []
         dataset_labels = []
         dataset_times = []
         for t in range(dataset_num):
-            dataset_inputs.append([np.sin(2.0 * np.pi / sin_t * (t_start + t + i)) for i in range(sequence_length)])
-            dataset_labels.append([np.sin(2.0 * np.pi / sin_t * (t_start + t + sequence_length))])
+            dataset_inputs.append([self.simple_formula(t_start + t + i, sin_t=sin_t) for i in range(sequence_length)])
+            dataset_labels.append([self.simple_formula(t_start + t + sequence_length, sin_t=sin_t)])
             dataset_times.append(t_start + t + sequence_length)
 
         # return np.array(dataset_inputs).reshape(-1, sequence_length, 1), np.array(dataset_labels).reshape(-1, 1)

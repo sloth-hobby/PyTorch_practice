@@ -37,8 +37,8 @@ class Train():
                                         lr=0.001,
                                         betas=(0.9, 0.999), amsgrad=True)
 
-    def simple_formula(self, input, sin_t=25.0, mode="sin"):
-        if mode == "sin":
+    def simple_formula(self, input, sin_t=25.0, formula_mode="sin"):
+        if formula_mode == "sin":
             return np.sin(2.0 * np.pi / sin_t * (input))
 
     def make_dataset(self, dataset_num, sequence_length, t_start, sin_t):

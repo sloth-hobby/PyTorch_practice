@@ -27,6 +27,24 @@ class PredictSimpleFormulaNet(nn.Module):
 
         return output
 
+class SimpleFormula():
+    def __init__(self, sin_t=25.0, k_gain=10.0, t_const=0.003, control_cycle=0.02):
+        self.sin_t = sin_t
+
+        self.k_gain = k_gain
+        self.t_const = t_const
+        self.control_cycle = control_cycle
+        self.pre_y = 0.0
+
+    def sin(self, input):
+        return np.sin(2.0 * np.pi / sin_t * (input))
+
+    def first_order_systems(self, input):
+        y = 1.0 / (self.t_const + self.control_cycle) * (self.t_const * self.pre_y + self.control_cycle * self.k_gain * self.input)
+        self.pre_y = y
+
+        return y
+
 class Train():
     def __init__(self, input_size, output_size, hidden_size, num_layers, batch_first, dropout):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -36,29 +54,29 @@ class Train():
         self.optimizer = optim.Adam(self.net.parameters(),
                                         lr=0.001,
                                         betas=(0.9, 0.999), amsgrad=True)
+        self.f = SimpleFormula(sin_t=25.0)
 
     def simple_formula(self, input, sin_t=25.0, formula_mode="sin"):
         if formula_mode == "sin":
             return np.sin(2.0 * np.pi / sin_t * (input))
-        else if formula_mode == "first-order_systems":
+        elif formula_mode == "first-order_systems":
             k_gain = 10.0
             t_const = 0.003
             pre_y = 0.0
             control_cycle = 0.02
             y = 1.0 / (t_const + control_cycle) * (t_const * pre_y + control_cycle * k_gain * input)
+
             return y
 
-
-    def make_dataset(self, dataset_num, sequence_length, t_start, sin_t):
+    def make_dataset(self, dataset_num, sequence_length, t_start):
         dataset_inputs = []
         dataset_labels = []
         dataset_times = []
         for t in range(dataset_num):
-            dataset_inputs.append([self.simple_formula(t_start + t + i, sin_t=sin_t) for i in range(sequence_length)])
-            dataset_labels.append([self.simple_formula(t_start + t + sequence_length, sin_t=sin_t)])
+            dataset_inputs.append([self.f.sin(t_start + t + i) for i in range(sequence_length)])
+            dataset_labels.append([self.f.sin(t_start + t + sequence_length)])
             dataset_times.append(t_start + t + sequence_length)
 
-        # return np.array(dataset_inputs).reshape(-1, sequence_length, 1), np.array(dataset_labels).reshape(-1, 1)
         return np.array(dataset_inputs),  np.array(dataset_labels), np.array(dataset_times)
 
     def train_step(self, inputs, labels):
@@ -144,7 +162,7 @@ if __name__ == '__main__':
     '''
     定数
     '''
-    dataset_num = 110
+    dataset_num = 100
     sequence_length = 3
     t_start = -100.0
     sin_t = 25.0
@@ -163,7 +181,7 @@ if __name__ == '__main__':
     学習用のデータセットを用意
     '''
     train = Train(input_size, output_size, hidden_size, num_layers, batch_first, dropout)
-    dataset_inputs, dataset_labels, dataset_times = train.make_dataset(dataset_num, sequence_length, t_start, sin_t)
+    dataset_inputs, dataset_labels, dataset_times = train.make_dataset(dataset_num, sequence_length, t_start)
     print("dataset_inputs = {}, dataset_labels = {}".format(dataset_inputs.shape, dataset_labels.shape))
     train_inputs, test_inputs, train_labels, test_labels = train_test_split(dataset_inputs, dataset_labels, test_size=test_size, shuffle=False)
     print("train_inputs = {}, train_labels = {}, test_inputs = {}, test_labels = {}".format(train_inputs.shape, train_labels.shape, test_inputs.shape, test_labels.shape))

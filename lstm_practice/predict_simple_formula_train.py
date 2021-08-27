@@ -40,6 +40,14 @@ class Train():
     def simple_formula(self, input, sin_t=25.0, formula_mode="sin"):
         if formula_mode == "sin":
             return np.sin(2.0 * np.pi / sin_t * (input))
+        else if formula_mode == "first-order_systems":
+            k_gain = 10.0
+            t_const = 0.003
+            pre_y = 0.0
+            control_cycle = 0.02
+            y = 1.0 / (t_const + control_cycle) * (t_const * pre_y + control_cycle * k_gain * input)
+            return y
+
 
     def make_dataset(self, dataset_num, sequence_length, t_start, sin_t):
         dataset_inputs = []

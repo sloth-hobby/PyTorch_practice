@@ -8,6 +8,17 @@ from sklearn.utils import shuffle
 import numpy as np
 import matplotlib.pyplot as plt
 
+class SimpleFormula():
+    def __init__(self, sin_t=25.0, cos_t = 25.0):
+        self.sin_t = sin_t
+        self.cos_t = cos_t
+
+    def sin(self, input):
+        return np.sin(2.0 * np.pi / sin_t * (input))
+
+    def cos(self, input):
+        return np.cos(2.0 * np.pi / cos_t * (input))
+
 class PredictSimpleFormulaNet(nn.Module):
     def __init__(self, input_size, output_size, hidden_size, num_layers, batch_first, dropout):
         super(PredictSimpleFormulaNet, self).__init__()
@@ -26,17 +37,6 @@ class PredictSimpleFormulaNet(nn.Module):
         output = self.output_layer(output[:, -1])
 
         return output
-
-class SimpleFormula():
-    def __init__(self, sin_t=25.0, cos_t = 25.0):
-        self.sin_t = sin_t
-        self.cos_t = cos_t
-
-    def sin(self, input):
-        return np.sin(2.0 * np.pi / sin_t * (input))
-
-    def cos(self, input):
-        return np.cos(2.0 * np.pi / cos_t * (input))
 
 class Train():
     def __init__(self, input_size, output_size, hidden_size, num_layers, batch_first, dropout):
@@ -67,10 +67,8 @@ class Train():
         return np.array(dataset_inputs),  np.array(dataset_labels), np.array(dataset_times)
 
     def train_step(self, inputs, labels):
-        # print("inputs = {}, labels = {}".format(inputs.shape, labels.shape))
         inputs = torch.Tensor(inputs).to(self.device)
         labels = torch.Tensor(labels).to(self.device)
-        # print("tensor_ver: inputs = {}, labels = {}".format(inputs, labels))
         self.net.train()
         preds = self.net(inputs)
         loss = self.criterion(preds, labels)
@@ -129,7 +127,6 @@ class Train():
             input = torch.Tensor(input).to(self.device)
             pred = self.net(input).data.cpu().numpy()
             preds.append(pred[0].tolist())
-        # print("test_inputs = {}, preds = {}, test_labels = {}".format(test_inputs, preds, test_labels))
         preds = np.array(preds)
         test_labels = np.array(test_labels)
         pred_epss = test_labels - preds
@@ -149,7 +146,7 @@ if __name__ == '__main__':
     '''
     定数
     '''
-    dataset_num = 100
+    dataset_num = 500
     sequence_length = 3
     t_start = -100.0
     sin_t = 25.0
@@ -163,7 +160,7 @@ if __name__ == '__main__':
     batch_first = True
     dropout = 0.0
     # train pram
-    epochs = 40
+    epochs = 15
     batch_size = 3
     test_size = 0.2
     '''
@@ -175,7 +172,6 @@ if __name__ == '__main__':
     print("dataset_inputs = {}, dataset_labels = {}".format(dataset_inputs.shape, dataset_labels.shape))
     train_inputs, test_inputs, train_labels, test_labels = train_test_split(dataset_inputs, dataset_labels, test_size=test_size, shuffle=False)
     print("train_inputs = {}, train_labels = {}, test_inputs = {}, test_labels = {}".format(train_inputs.shape, train_labels.shape, test_inputs.shape, test_labels.shape))
-    # print("train_inputs = {}, train_labels = {}, test_inputs = {}, test_labels = {}".format(train_inputs, train_labels, test_inputs, test_labels))
     train.train(train_inputs, train_labels, test_inputs, test_labels, epochs, batch_size, sequence_length, input_size)
     train_times, test_times = train_test_split(dataset_times, test_size=test_size, shuffle=False)
     train.pred_result_plt(test_inputs, test_labels, test_times, sequence_length, input_size)

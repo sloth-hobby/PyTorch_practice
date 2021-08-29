@@ -33,8 +33,8 @@ class PredictSimpleFormulaNet(nn.Module):
         nn.init.orthogonal_(self.rnn.weight_hh_l0)
 
     def forward(self, inputs):
-        output, _= self.rnn(inputs)
-        output = self.output_layer(output[:, -1])
+        h, _= self.rnn(inputs)
+        output = self.output_layer(h[:, -1])
 
         return output
 
@@ -151,7 +151,7 @@ if __name__ == '__main__':
     t_start = -100.0
     sin_t = 25.0
     cos_t = 50.0
-    calc_mode = "cos"
+    calc_mode = "sin"
     # model pram
     input_size = 1
     output_size = 1
@@ -161,7 +161,7 @@ if __name__ == '__main__':
     dropout = 0.0
     # train pram
     epochs = 15
-    batch_size = 3
+    batch_size = 4
     test_size = 0.2
     '''
     学習用のデータセットを用意

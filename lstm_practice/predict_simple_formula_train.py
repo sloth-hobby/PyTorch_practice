@@ -9,24 +9,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class SimpleFormula():
-    def __init__(self, sin_t=25.0, cos_t = 25.0):
+    def __init__(self, sin_a=2.0, cos_a = 2.0, sin_t=25.0, cos_t = 25.0):
+        self.sin_a = sin_a
+        self.cos_a = cos_a
         self.sin_t = sin_t
         self.cos_t = cos_t
 
     def sin(self, input):
-        return np.sin(2.0 * np.pi / sin_t * (input))
+        return self.sin_a * np.sin(2.0 * np.pi / self.sin_t * (input))
 
     def cos(self, input):
-        return np.cos(2.0 * np.pi / cos_t * (input))
+        return self.cos_a * np.cos(2.0 * np.pi / self.cos_t * (input))
 
 class PredictSimpleFormulaNet(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size, num_layers, batch_first, dropout):
+    def __init__(self, input_size, output_size, hidden_size, batch_first):
         super(PredictSimpleFormulaNet, self).__init__()
         self.rnn = nn.LSTM(input_size = input_size,
                             hidden_size = hidden_size,
-                            num_layers = num_layers,
-                            batch_first = batch_first,
-                            dropout = dropout)
+                            batch_first = batch_first)
         self.output_layer = nn.Linear(hidden_size, output_size)
 
         nn.init.xavier_normal_(self.rnn.weight_ih_l0)
@@ -39,17 +39,15 @@ class PredictSimpleFormulaNet(nn.Module):
         return output
 
 class Train():
-    def __init__(self, input_size, output_size, hidden_size, num_layers, batch_first, dropout):
+    def __init__(self, input_size, output_size, hidden_size, batch_first, lr):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print("device：", self.device)
-        self.net = PredictSimpleFormulaNet(input_size, output_size, hidden_size, num_layers, batch_first, dropout).to(self.device)
+        self.net = PredictSimpleFormulaNet(input_size, output_size, hidden_size, batch_first).to(self.device)
         self.criterion = nn.MSELoss(reduction='mean')
-        self.optimizer = optim.Adam(self.net.parameters(),
-                                        lr=0.001,
-                                        betas=(0.9, 0.999), amsgrad=True)
+        self.optimizer = optim.Adam(self.net.parameters(), lr=lr, betas=(0.9, 0.999), amsgrad=True)
 
-    def set_formula_const_arg(self, sin_t, cos_t):
-        self.f = SimpleFormula(sin_t, cos_t)
+    def set_formula_const_arg(self, sin_a, cos_a, sin_t, cos_t):
+        self.f = SimpleFormula(sin_a, cos_a, sin_t, cos_t)
 
     def make_dataset(self, dataset_num, sequence_length, t_start, calc_mode="sin"):
         dataset_inputs = []
@@ -63,7 +61,7 @@ class Train():
                 dataset_inputs.append([self.f.cos(t_start + t + i) for i in range(sequence_length)])
                 dataset_labels.append([self.f.cos(t_start + t + sequence_length)])
             dataset_times.append(t_start + t + sequence_length)
-
+        print("test = {}, {}, {}".format(np.array(dataset_inputs).shape,  np.array(dataset_labels).shape, np.array(dataset_times).shape))
         return np.array(dataset_inputs),  np.array(dataset_labels), np.array(dataset_times)
 
     def train_step(self, inputs, labels):
@@ -141,33 +139,32 @@ class Train():
         plt.show()
 
 if __name__ == '__main__':
-    np.random.seed(123)
-    torch.manual_seed(123)
     '''
     定数
     '''
-    dataset_num = 500
+    dataset_num = 250
     sequence_length = 3
     t_start = -100.0
+    sin_a = 2.0
+    cos_a = 2.0
     sin_t = 25.0
-    cos_t = 50.0
+    cos_t = 25.0
     calc_mode = "sin"
     # model pram
     input_size = 1
     output_size = 1
     hidden_size = 64
-    num_layers = 1
     batch_first = True
-    dropout = 0.0
     # train pram
+    lr = 0.001
     epochs = 15
     batch_size = 4
     test_size = 0.2
     '''
-    学習用のデータセットを用意
+    学習用の関数を呼び出す
     '''
-    train = Train(input_size, output_size, hidden_size, num_layers, batch_first, dropout)
-    train.set_formula_const_arg(sin_t, cos_t)
+    train = Train(input_size, output_size, hidden_size, batch_first, lr)
+    train.set_formula_const_arg(sin_a, cos_a, sin_t, cos_t)
     dataset_inputs, dataset_labels, dataset_times = train.make_dataset(dataset_num, sequence_length, t_start, calc_mode=calc_mode)
     print("dataset_inputs = {}, dataset_labels = {}".format(dataset_inputs.shape, dataset_labels.shape))
     train_inputs, test_inputs, train_labels, test_labels = train_test_split(dataset_inputs, dataset_labels, test_size=test_size, shuffle=False)

@@ -128,7 +128,7 @@ class Train():
         preds = np.array(preds)
         test_labels = np.array(test_labels)
         pred_epss = test_labels - preds
-        print("pred_epss = {}".format(pred_epss))
+        print("pred_epss_max = {}".format(pred_epss.max()))
         #以下グラフ描画
         plt.plot(test_times, preds)
         plt.plot(test_times, test_labels, c='#00ff00')
@@ -149,7 +149,7 @@ if __name__ == '__main__':
     cos_a = 2.0
     sin_t = 25.0
     cos_t = 25.0
-    calc_mode = "sin"
+    calc_mode = "cos"
     # model pram
     input_size = 1
     output_size = 1

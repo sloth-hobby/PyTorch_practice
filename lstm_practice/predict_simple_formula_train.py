@@ -138,6 +138,21 @@ class Train():
         plt.title('compare label and pred')
         plt.show()
 
+    def confirm_input_and_label_plot(self, calc_mode, inputs, labels, times):
+        print('-------------')
+        print("confirm_input_and_label!!")
+        re_inputs = inputs[:, -1]
+        #以下グラフ描画
+        print(re_inputs[:-3], re_inputs[-3:], labels, times[-1])
+        plt.plot(times[:-3], re_inputs[:-3], marker="o")
+        plt.plot(times[-3:], re_inputs[-3:], marker="o")
+        plt.plot(times[-1]+1.0, labels[-1], marker="o")
+        plt.xlabel('t')
+        plt.ylabel('y')
+        plt.legend(['sin', 'input', 'label'])
+        plt.title('confirm input and label')
+        plt.show()
+
 if __name__ == '__main__':
     '''
     定数
@@ -149,7 +164,7 @@ if __name__ == '__main__':
     cos_a = 2.0
     sin_t = 25.0
     cos_t = 25.0
-    calc_mode = "cos"
+    calc_mode = "sin"
     # model pram
     input_size = 1
     output_size = 1
@@ -168,8 +183,9 @@ if __name__ == '__main__':
     dataset_inputs, dataset_labels, dataset_times = train.make_dataset(dataset_num, sequence_length, t_start, calc_mode=calc_mode)
     print("dataset_inputs = {}, dataset_labels = {}".format(dataset_inputs.shape, dataset_labels.shape))
     train_inputs, test_inputs, train_labels, test_labels = train_test_split(dataset_inputs, dataset_labels, test_size=test_size, shuffle=False)
-    print("train_inputs = {}, train_labels = {}, test_inputs = {}, test_labels = {}".format(train_inputs.shape, train_labels.shape, test_inputs.shape, test_labels.shape))
-    train.train(train_inputs, train_labels, test_inputs, test_labels, epochs, batch_size, sequence_length, input_size)
     train_times, test_times = train_test_split(dataset_times, test_size=test_size, shuffle=False)
+    print("train_inputs = {}, train_labels = {}, test_inputs = {}, test_labels = {}".format(train_inputs.shape, train_labels.shape, test_inputs.shape, test_labels.shape))
+    train.confirm_input_and_label_plot(calc_mode, test_inputs, test_labels, test_times)
+    train.train(train_inputs, train_labels, test_inputs, test_labels, epochs, batch_size, sequence_length, input_size)
     train.pred_result_plt(test_inputs, test_labels, test_times, sequence_length, input_size)
 

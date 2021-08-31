@@ -127,7 +127,7 @@ class Train():
             preds.append(pred[0].tolist())
         preds = np.array(preds)
         test_labels = np.array(test_labels)
-        pred_epss = test_labels - preds
+        pred_epss = np.abs(test_labels - preds)
         print("pred_epss_max = {}".format(pred_epss.max()))
         #以下グラフ描画
         plt.plot(test_times, preds)
@@ -139,17 +139,17 @@ class Train():
         plt.show()
 
     def confirm_input_and_label_plot(self, calc_mode, inputs, labels, times):
+        #この関数はinputとlabelを可視化するためのコードで基本的に使う必要のない関数です
         print('-------------')
         print("confirm_input_and_label!!")
         re_inputs = inputs[:, -1]
         #以下グラフ描画
-        print(re_inputs[:-3], re_inputs[-3:], labels, times[-1])
         plt.plot(times[:-3], re_inputs[:-3], marker="o")
         plt.plot(times[-3:], re_inputs[-3:], marker="o")
         plt.plot(times[-1]+1.0, labels[-1], marker="o")
         plt.xlabel('t')
         plt.ylabel('y')
-        plt.legend(['sin', 'input', 'label'])
+        plt.legend([calc_mode, 'input', 'label'])
         plt.title('confirm input and label')
         plt.show()
 
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     train_inputs, test_inputs, train_labels, test_labels = train_test_split(dataset_inputs, dataset_labels, test_size=test_size, shuffle=False)
     train_times, test_times = train_test_split(dataset_times, test_size=test_size, shuffle=False)
     print("train_inputs = {}, train_labels = {}, test_inputs = {}, test_labels = {}".format(train_inputs.shape, train_labels.shape, test_inputs.shape, test_labels.shape))
-    train.confirm_input_and_label_plot(calc_mode, test_inputs, test_labels, test_times)
+    # train.confirm_input_and_label_plot(calc_mode, test_inputs, test_labels, test_times)
     train.train(train_inputs, train_labels, test_inputs, test_labels, epochs, batch_size, sequence_length, input_size)
     train.pred_result_plt(test_inputs, test_labels, test_times, sequence_length, input_size)
 

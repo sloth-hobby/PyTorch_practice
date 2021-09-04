@@ -35,7 +35,7 @@ class PredictSimpleFormulaNet(nn.Module):
     def forward(self, inputs):
         h, _= self.rnn(inputs)
         output = self.output_layer(h[:, -1])
-
+        # print("h, output = {}, {}".format(h.shape, output.shape))
         return output
 
 class Train():
@@ -114,16 +114,27 @@ class Train():
             test_loss /= float(n_batches_test)
             print('loss: {:.3}, test_loss: {:.3}'.format(train_loss, test_loss))
 
-    def pred_result_plt(self, test_inputs, test_labels, test_times, sequence_length, input_size):
+    def pred_result_plt(self, test_inputs, test_labels, test_times, sequence_length, input_size, pred_step):
         print('-------------')
         print("start predict test!!")
         self.net.eval()
         preds = []
-        for i in range(len(test_inputs)):
+        for i in range(0, len(test_inputs), pred_step):
+            # input = np.array(test_inputs[i]).reshape(-1, sequence_length, input_size)
+            # input = torch.Tensor(input).to(self.device)
+            # pred = self.net(input).data.cpu().numpy()
+            # print("pred = {}, {}".format(self.net(input), pred))
+            # preds.append(pred[0].tolist())
             input = np.array(test_inputs[i]).reshape(-1, sequence_length, input_size)
-            input = torch.Tensor(input).to(self.device)
-            pred = self.net(input).data.cpu().numpy()
-            preds.append(pred[0].tolist())
+            for j in range(pred_step):
+                # input = np.array(test_inputs[i]).reshape(-1, sequence_length, input_size)
+                input_tensor = torch.Tensor(input).to(self.device)
+                pred = self.net(input_tensor).data.cpu().numpy()
+                input = np.delete(input, 0, axis=1)
+                input = np.insert(input, 2, pred[0][0], axis=1)
+                print("preds = {}, {}".format(input, pred))
+                preds.append(pred[0][0])
+        print("preds = {}".format(preds))
         preds = np.array(preds)
         test_labels = np.array(test_labels)
         pred_epss = np.abs(test_labels - preds)
@@ -164,6 +175,7 @@ if __name__ == '__main__':
     sin_t = 25.0
     cos_t = 25.0
     calc_mode = "sin"
+    pred_step = 2
     # model pram
     input_size = 1
     output_size = 1
@@ -186,5 +198,5 @@ if __name__ == '__main__':
     print("train_inputs = {}, train_labels = {}, test_inputs = {}, test_labels = {}".format(train_inputs.shape, train_labels.shape, test_inputs.shape, test_labels.shape))
     # train.confirm_input_and_label_plot(calc_mode, test_inputs, test_labels, test_times)
     train.train(train_inputs, train_labels, test_inputs, test_labels, epochs, batch_size, sequence_length, input_size)
-    train.pred_result_plt(test_inputs, test_labels, test_times, sequence_length, input_size)
+    train.pred_result_plt(test_inputs, test_labels, test_times, sequence_length, input_size, pred_step)
 

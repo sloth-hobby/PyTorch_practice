@@ -128,19 +128,22 @@ class Train():
             input = np.array(test_inputs[i]).reshape(-1, sequence_length, input_size)
             for j in range(pred_step):
                 # input = np.array(test_inputs[i]).reshape(-1, sequence_length, input_size)
-                print("input = {}".format(input.reshape(-1)))
-                input_tensor = torch.Tensor(input).to(self.device)
-                pred = self.net(input_tensor).data.cpu().numpy()
-                input = np.delete(input, 0, axis=1)
-                input = np.insert(input, 2, pred[0][0], axis=1)
-                print("preds = {}, {}".format(pred[0][0], test_labels[i + j]))
-                print("====================")
-                preds.append(pred[0].tolist())
-        preds = np.array(preds)
-        test_labels = np.array(test_labels)
+                if i + j < test_labels.shape[0]:
+                    # print("test_shape = {}".format(test_labels.shape))
+                    print("i, j = {}, {}".format(i, j))
+                    print("input = {}".format(input.reshape(-1)))
+                    input_tensor = torch.Tensor(input).to(self.device)
+                    pred = self.net(input_tensor).data.cpu().numpy()
+                    input = np.delete(input, 0, axis=1)
+                    input = np.insert(input, 2, pred[0][0], axis=1)
+                    print("preds = {}, {}, {}, {}".format(i, j, pred[0][0], test_labels[i + j]))
+                    print("====================")
+                    preds.append(pred[0][0])
+        preds = np.array(preds).reshape(-1)
+        test_labels = test_labels.reshape(-1)
         pred_epss = np.abs(test_labels - preds)
         np.set_printoptions(threshold=np.inf)
-        print("preds = {}".format(preds))
+        print("preds = {}".format(preds.reshape(-1)))
         print("test_labels = {}".format(test_labels.reshape(-1)))
         print("pred_epss = {}".format(pred_epss.reshape(-1)))
         print("pred_epss_max = {}, {}, {}, {}".format(preds.shape, test_labels.shape, pred_epss.shape, pred_epss.max()))
@@ -180,7 +183,7 @@ if __name__ == '__main__':
     sin_t = 25.0
     cos_t = 25.0
     calc_mode = "sin"
-    pred_step = 2
+    pred_step = 3
     # model pram
     input_size = 1
     output_size = 1
@@ -188,7 +191,7 @@ if __name__ == '__main__':
     batch_first = True
     # train pram
     lr = 0.001
-    epochs = 15
+    epochs = 55
     batch_size = 4
     test_size = 0.2
     '''

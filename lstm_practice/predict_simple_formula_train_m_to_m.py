@@ -114,46 +114,46 @@ class Train():
             test_loss /= float(n_batches_test)
             print('loss: {:.3}, test_loss: {:.3}'.format(train_loss, test_loss))
 
-    def pred_result_plt(self, test_inputs, test_labels, test_times, sequence_length, input_size, pred_step):
+    def pred_result_plt(self, test_inputs, test_labels, test_times, sequence_length, input_size, pred_step_list):
         print('-------------')
         print("start predict test!!")
         self.net.eval()
-        preds = []
-        for i in range(0, len(test_inputs), pred_step):
-            # input = np.array(test_inputs[i]).reshape(-1, sequence_length, input_size)
-            # input = torch.Tensor(input).to(self.device)
-            # pred = self.net(input).data.cpu().numpy()
-            # print("pred = {}, {}".format(self.net(input), pred))
-            # preds.append(pred[0].tolist())
-            input = np.array(test_inputs[i]).reshape(-1, sequence_length, input_size)
-            for j in range(pred_step):
-                # input = np.array(test_inputs[i]).reshape(-1, sequence_length, input_size)
-                if i + j < test_labels.shape[0]:
-                    # print("test_shape = {}".format(test_labels.shape))
-                    print("i, j = {}, {}".format(i, j))
-                    print("input = {}".format(input.reshape(-1)))
-                    input_tensor = torch.Tensor(input).to(self.device)
-                    pred = self.net(input_tensor).data.cpu().numpy()
-                    input = np.delete(input, 0, axis=1)
-                    input = np.insert(input, 2, pred[0][0], axis=1)
-                    print("preds = {}, {}, {}, {}".format(i, j, pred[0][0], test_labels[i + j]))
-                    print("====================")
-                    preds.append(pred[0][0])
-        preds = np.array(preds).reshape(-1)
-        test_labels = test_labels.reshape(-1)
-        pred_epss = np.abs(test_labels - preds)
-        np.set_printoptions(threshold=np.inf)
-        print("preds = {}".format(preds.reshape(-1)))
-        print("test_labels = {}".format(test_labels.reshape(-1)))
-        print("pred_epss = {}".format(pred_epss.reshape(-1)))
-        print("pred_epss_max = {}, {}, {}, {}".format(preds.shape, test_labels.shape, pred_epss.shape, pred_epss.max()))
+        preds = [[] for num in range(len(pred_step_list))]
+        for i in range(len(pred_step_list)):
+            for j in range(0, len(test_inputs), pred_step_list[i]):
+                input = np.array(test_inputs[j]).reshape(-1, sequence_length, input_size)
+                for k in range(pred_step_list[i]):
+                    if j + k < test_labels.shape[0]:
+                        # print("j, k = {}, {}".format(j, k))
+                        # print("input = {}".format(input.reshape(-1)))
+                        input_tensor = torch.Tensor(input).to(self.device)
+                        pred = self.net(input_tensor).data.cpu().numpy()
+                        input = np.delete(input, 0, axis=1)
+                        input = np.insert(input, 2, pred[0][0], axis=1)
+                        # print("preds = {}, {}".format(pred[0][0], test_labels[j + k]))
+                        # print("====================")
+                        preds[i].append(pred[0][0])
+            preds[i] = np.array(preds[i]).reshape(-1)
+            test_labels = test_labels.reshape(-1)
+            # pred_epss = np.abs(test_labels - preds)
+            # np.set_printoptions(threshold=np.inf)
+            # print("preds = {}".format(preds.reshape(-1)))
+            # print("test_labels = {}".format(test_labels.reshape(-1)))
+            # print("pred_epss = {}".format(pred_epss.reshape(-1)))
+            # print("pred_epss_max = {}, {}, {}, {}".format(preds.shape, test_labels.shape, pred_epss.shape, pred_epss.max()))
+            rmse = np.sqrt(np.sum(np.power((test_labels - preds[i]), 2)) / float(test_labels.shape[0]))
+            print("pred_step = {}, rmse = {}".format(i, rmse))
+
         #以下グラフ描画
-        plt.plot(test_times, preds)
+        plt_legend_list = ['label']
+        for i in range(len(pred_step_list)):
+            plt.plot(test_times, preds[i])
+            plt_legend_list.append('pred_' + str(pred_step_list[i]))
         plt.plot(test_times, test_labels, c='#00ff00')
         plt.xlabel('t')
         plt.ylabel('y')
-        plt.legend(['label', 'pred'])
-        plt.title('compare label and pred')
+        plt.legend(plt_legend_list)
+        plt.title('compare label and preds')
         plt.show()
 
     def confirm_input_and_label_plot(self, calc_mode, inputs, labels, times):
@@ -183,7 +183,7 @@ if __name__ == '__main__':
     sin_t = 25.0
     cos_t = 25.0
     calc_mode = "sin"
-    pred_step = 3
+    pred_step_list = [num for num in range(1, 6)]
     # model pram
     input_size = 1
     output_size = 1
@@ -191,7 +191,7 @@ if __name__ == '__main__':
     batch_first = True
     # train pram
     lr = 0.001
-    epochs = 55
+    epochs = 15
     batch_size = 4
     test_size = 0.2
     '''
@@ -206,5 +206,5 @@ if __name__ == '__main__':
     print("train_inputs = {}, train_labels = {}, test_inputs = {}, test_labels = {}".format(train_inputs.shape, train_labels.shape, test_inputs.shape, test_labels.shape))
     # train.confirm_input_and_label_plot(calc_mode, test_inputs, test_labels, test_times)
     train.train(train_inputs, train_labels, test_inputs, test_labels, epochs, batch_size, sequence_length, input_size)
-    train.pred_result_plt(test_inputs, test_labels, test_times, sequence_length, input_size, pred_step)
+    train.pred_result_plt(test_inputs, test_labels, test_times, sequence_length, input_size, pred_step_list)
 

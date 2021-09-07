@@ -173,7 +173,7 @@ if __name__ == '__main__':
     cos_a = 2.0
     sin_t = 25.0
     cos_t = 25.0
-    calc_mode = "sin"
+    calc_mode = "cos"
     pred_step_list = [num for num in range(1, 10)]
     # model pram
     input_size = 1
